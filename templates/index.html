@@ -37,7 +37,7 @@
           <h1>URL Shortner</h1>
         </div>
 
-        <form>
+        <form action="/url_input", method="post">
           <div class="mb-3">
             <!-- <label for="urlInput" class="form-label">Enter URL</label> -->
             <input
@@ -45,10 +45,29 @@
               type="text"
               id="urlInput"
               placeholder="Enter URL"
+              name="url_input"
             />
           </div>
-          <button type="submit" class="btn btn-lg btn-primary">Submit</button>
+          <div class="text-center mt-2 mb-2">
+            <button
+              type="submit"
+              class="btn btn-lg btn-dark"
+              style="width: 200px"
+            >
+              Submit
+            </button>
+          </div>
         </form>
+        
+        {% if url_input %}
+        <div class="card mt-2">
+          <div class="card-body">
+            <p><strong>Your url: </strong> {{ url_input }}</p>
+            <p><strong>Shorten url: </strong></p>
+          </div>
+        </div>
+        {% endif %}
+
       </div>
     </div>
 
