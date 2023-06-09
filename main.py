@@ -57,6 +57,7 @@ async def input_url(url: schemas.URLBase, db: SessionLocal() = Depends(get_db)):
 async def redirect_to_url(request: Request, url_key: str, db:SessionLocal() = Depends(get_db)):
     db_url = crud.get_db_url_by_key(db=db, key=url_key)
     if db_url:
+        crud.update_click_count(db=db, db_url=db_url)
         return RedirectResponse(db_url.input_url)
     else:
         raise_url_not_found(request)
