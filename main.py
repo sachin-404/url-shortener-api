@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Request, Form, HTTPException, Depends
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Form, HTTPException, Depends, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 # from fastapi.staticfiles import StaticFiles
 import validators
@@ -24,6 +24,9 @@ templates = Jinja2Templates(directory="templates")
 def raise_exception(error_message):
     raise HTTPException(status_code=400, detail=error_message)
 
+def raise_url_not_found(error_message):
+    raise HTTPException(status_code=400, detail=error_message)
+
 @app.get("/")
 async def index(request: Request):
     return "helloooooo"
@@ -32,7 +35,7 @@ async def index(request: Request):
 @app.post("/input_url", response_model=schemas.URLInfo)
 async def input_url(url: schemas.URLBase, db: SessionLocal() = Depends(get_db)):
     if not validators.url(url.input_url):
-        return raise_exception("Entered URL is not valid")
+        raise_exception("Entered URL is not valid")
     
     chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     key = "".join(secrets.choice(chars) for _ in range(5))
@@ -49,4 +52,11 @@ async def input_url(url: schemas.URLBase, db: SessionLocal() = Depends(get_db)):
     
     return db_url
 
-
+@app.get("/{url_key}")
+async def redirect_to_url(request: Request, url_key: str, db:SessionLocal() = Depends(get_db)):
+    db_url = db.query(models.URL).filter(models.URL.key == url_key, models.URL.is_active).first()
+    if db_url:
+        return RedirectResponse(db_url.input_url)
+    else:
+        raise_url_not_found("Provided URL doesnt exist!!")
+    
