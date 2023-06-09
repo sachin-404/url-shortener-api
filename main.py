@@ -6,6 +6,9 @@ import validators
 from configs import schemas, models
 from configs.database import engine, SessionLocal
 from src import crud
+from starlette.datastructures import URL
+
+BASE_URL: str = "http://localhost:8000"
 
 app = FastAPI()
 
@@ -28,6 +31,15 @@ def raise_url_not_found(request):
     message = f"URL '{request.url}' doesn't exist"
     raise HTTPException(status_code=404, detail=message)
 
+def get_admin_info(db_url: models.URL) -> schemas.URLInfo:
+    base_url = URL(BASE_URL)
+    admin_endpoint = app.url_path_for(
+        "administration info", secret_key = db_url.secret_key
+    )
+    db_url.url = str(base_url.replace(path=db_url.key))
+    db_url.admin_url = str(base_url.replace(path=admin_endpoint))
+    return db_url
+
 
 @app.get("/")
 async def index(request: Request):
@@ -39,10 +51,7 @@ async def input_url(url: schemas.URLBase, db: SessionLocal() = Depends(get_db)):
     if not validators.url(url.input_url):
         raise_exception("Entered URL is not valid")
     db_url = crud.create_db_url(url, db)
-    db_url.url = db_url.key
-    db_url.admin_url = db_url.secret_key
-    
-    return db_url
+    return get_admin_info(db_url)
 
 @app.get("/{url_key}")
 async def redirect_to_url(request: Request, url_key: str, db:SessionLocal() = Depends(get_db)):
@@ -51,4 +60,13 @@ async def redirect_to_url(request: Request, url_key: str, db:SessionLocal() = De
         return RedirectResponse(db_url.input_url)
     else:
         raise_url_not_found(request)
+        
+@app.get("/admin/{secret_key}", name="administration info", response_model=schemas.URLInfo)
+async def get_url_info(request: Request, secret_key: str, db: SessionLocal() = Depends(get_db)):
+    db_url = crud.get_db_url_by_secret_key(db, secret_key)
+    if db_url:
+        return get_admin_info(db_url)
+    else:
+        raise_url_not_found(request)
+        
     
