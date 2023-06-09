@@ -24,8 +24,10 @@ templates = Jinja2Templates(directory="templates")
 def raise_exception(error_message):
     raise HTTPException(status_code=400, detail=error_message)
 
-def raise_url_not_found(error_message):
-    raise HTTPException(status_code=400, detail=error_message)
+def raise_url_not_found(request):
+    message = f"URL '{request.url}' doesn't exist"
+    raise HTTPException(status_code=404, detail=message)
+
 
 @app.get("/")
 async def index(request: Request):
@@ -58,5 +60,5 @@ async def redirect_to_url(request: Request, url_key: str, db:SessionLocal() = De
     if db_url:
         return RedirectResponse(db_url.input_url)
     else:
-        raise_url_not_found("Provided URL doesnt exist!!")
+        raise_url_not_found(request)
     
