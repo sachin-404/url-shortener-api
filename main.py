@@ -70,4 +70,14 @@ async def get_url_info(request: Request, secret_key: str, db: SessionLocal() = D
     else:
         raise_url_not_found(request)
         
+@app.delete("/admin/{secret_key}")
+async def delete_short_url(request: Request, secret_key:str, db: SessionLocal() = Depends(get_db)):
+    db_query = db.query(models.URL).filter(models.URL.secret_key == secret_key)
+    if db_query.first():
+        db_query.delete()
+        db.commit()
+        return{"detail": f"Successfully deleted the URL"}
+    else:
+        raise_url_not_found(request)
+        
     
