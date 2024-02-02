@@ -12,3 +12,7 @@ The key features are:
 - **Configurability** - The database connection string and other settings can be configured through config files.
 
 To use the API, simply send a POST request to the /url endpoint with the long URL in the request body. The API will respond with a JSON containing the shortened alias. The shortened URLs can then be accessed through the /{alias} endpoint.
+
+## Tech Stack
+- **Backend**: FastAPI
+- **Frontend**: Bootstrap(Still under development)
